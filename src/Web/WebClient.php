@@ -377,64 +377,65 @@ class WebClient
      */
     protected function detectEngine($userAgent)
     {
-        if (\stripos($userAgent, 'MSIE') !== false || \stripos($userAgent, 'Trident') !== false) {
-            // Attempt to detect the client engine -- starting with the most popular ... for now.
-            $this->engine = self::TRIDENT;
-        } elseif (\stripos($userAgent, 'Edge') !== false || \stripos($userAgent, 'EdgeHTML') !== false) {
-            $this->engine = self::EDGE;
-        } elseif (\stripos($userAgent, 'Edg') !== false) {
-            $this->engine = self::BLINK;
-        } elseif (\stripos($userAgent, 'Chrome') !== false) {
-            $result  = \explode('/', \stristr($userAgent, 'Chrome'));
-            $version = \explode(' ', $result[1]);
-
-            if ($version[0] >= 28) {
+        if ($userAgent) {
+            if (\stripos($userAgent, 'MSIE') !== false || \stripos($userAgent, 'Trident') !== false) {
+                // Attempt to detect the client engine -- starting with the most popular ... for now.
+                $this->engine = self::TRIDENT;
+            } elseif (\stripos($userAgent, 'Edge') !== false || \stripos($userAgent, 'EdgeHTML') !== false) {
+                $this->engine = self::EDGE;
+            } elseif (\stripos($userAgent, 'Edg') !== false) {
                 $this->engine = self::BLINK;
-            } else {
-                $this->engine = self::WEBKIT;
-            }
-        } elseif (\stripos($userAgent, 'AppleWebKit') !== false || \stripos($userAgent, 'blackberry') !== false) {
-            if (\stripos($userAgent, 'AppleWebKit') !== false) {
-                $result  = \explode('/', \stristr($userAgent, 'AppleWebKit'));
+            } elseif (\stripos($userAgent, 'Chrome') !== false) {
+                $result  = \explode('/', \stristr($userAgent, 'Chrome'));
                 $version = \explode(' ', $result[1]);
-
-                if ($version[0] === 537.36) {
-                    // AppleWebKit/537.36 is Blink engine specific, exception is Blink emulated IEMobile, Trident or Edge
+    
+                if ($version[0] >= 28) {
                     $this->engine = self::BLINK;
+                } else {
+                    $this->engine = self::WEBKIT;
                 }
-            }
-
-            // Evidently blackberry uses WebKit and doesn't necessarily report it.  Bad RIM.
-            $this->engine = self::WEBKIT;
-        } elseif (\stripos($userAgent, 'Gecko') !== false && \stripos($userAgent, 'like Gecko') === false) {
-            // We have to check for like Gecko because some other browsers spoof Gecko.
-            $this->engine = self::GECKO;
-        } elseif (\stripos($userAgent, 'Opera') !== false || \stripos($userAgent, 'Presto') !== false) {
-            $version = false;
-
-            if (\preg_match('/Opera[\/| ]?([0-9.]+)/u', $userAgent, $match)) {
-                $version = (float) ($match[1]);
-            }
-
-            if (\preg_match('/Version\/([0-9.]+)/u', $userAgent, $match)) {
-                if ((float) ($match[1]) >= 10) {
+            } elseif (\stripos($userAgent, 'AppleWebKit') !== false || \stripos($userAgent, 'blackberry') !== false) {
+                if (\stripos($userAgent, 'AppleWebKit') !== false) {
+                    $result  = \explode('/', \stristr($userAgent, 'AppleWebKit'));
+                    $version = \explode(' ', $result[1]);
+    
+                    if ($version[0] === 537.36) {
+                        // AppleWebKit/537.36 is Blink engine specific, exception is Blink emulated IEMobile, Trident or Edge
+                        $this->engine = self::BLINK;
+                    }
+                }
+    
+                // Evidently blackberry uses WebKit and doesn't necessarily report it.  Bad RIM.
+                $this->engine = self::WEBKIT;
+            } elseif (\stripos($userAgent, 'Gecko') !== false && \stripos($userAgent, 'like Gecko') === false) {
+                // We have to check for like Gecko because some other browsers spoof Gecko.
+                $this->engine = self::GECKO;
+            } elseif (\stripos($userAgent, 'Opera') !== false || \stripos($userAgent, 'Presto') !== false) {
+                $version = false;
+    
+                if (\preg_match('/Opera[\/| ]?([0-9.]+)/u', $userAgent, $match)) {
                     $version = (float) ($match[1]);
                 }
+    
+                if (\preg_match('/Version\/([0-9.]+)/u', $userAgent, $match)) {
+                    if ((float) ($match[1]) >= 10) {
+                        $version = (float) ($match[1]);
+                    }
+                }
+    
+                if ($version !== false && $version >= 15) {
+                    $this->engine = self::BLINK;
+                } else {
+                    $this->engine = self::PRESTO;
+                }
+            } elseif (\stripos($userAgent, 'KHTML') !== false) {
+                // *sigh*
+                $this->engine = self::KHTML;
+            } elseif (\stripos($userAgent, 'Amaya') !== false) {
+                // Lesser known engine but it finishes off the major list from Wikipedia :-)
+                $this->engine = self::AMAYA;
             }
-
-            if ($version !== false && $version >= 15) {
-                $this->engine = self::BLINK;
-            } else {
-                $this->engine = self::PRESTO;
-            }
-        } elseif (\stripos($userAgent, 'KHTML') !== false) {
-            // *sigh*
-            $this->engine = self::KHTML;
-        } elseif (\stripos($userAgent, 'Amaya') !== false) {
-            // Lesser known engine but it finishes off the major list from Wikipedia :-)
-            $this->engine = self::AMAYA;
         }
-
         // Mark this detection routine as run.
         $this->detection['engine'] = true;
     }
